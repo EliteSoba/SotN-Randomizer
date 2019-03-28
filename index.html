@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Castlevania: Symphony of the Night Relic Randomizer</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
+    <link rel="stylesheet" href="index.css">
+  </head>
+  <body>
+    <h1>Relic Randomizer</h1>
+    <p>This is a relic randomizer for <i>Castlevania: Symphony of the Night</i>.</p>
+    <form id="form">
+      <fieldset>
+        <p id="target"></p>
+        <p>
+          <label for="seed">Seed (optional)</label> <input type="text" name="seed">
+        </p>
+        <p>
+          <input type="submit" name="randomize" class="pure-button" disabled="disabled" value="Randomize">
+          <a id="download" class="pure-button pure-button-primary pure-button-disabled">Download</a>
+        </p>
+      </fieldset>
+      <div id="loader"></div>
+    </form>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.1/seedrandom.min.js"></script>
+    <script src="eccedccalc.js"></script>
+    <script src="relicrando.js"></script>
+    <script src="index.js"></script>
+  </body>
+</html>
