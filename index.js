@@ -3,7 +3,6 @@ let selectedFile
 
 function disableDownload() {
   downloadReady = false
-  download.className = 'pure-button pure-button-primary pure-button-disabled'
   delete download.download
   delete download.href
 }
@@ -65,12 +64,6 @@ function dropListener(event) {
   }
 }
 
-function clickListener() {
-  if (downloadReady) {
-    showLoader()
-  }
-}
-
 function submitListener(event) {
   event.preventDefault()
   event.stopPropagation()
@@ -86,8 +79,6 @@ function submitListener(event) {
     try {
       const data = reader.result
       const array = new Uint8Array(data)
-      console.log(equipment)
-      console.log(relics)
       if (equipment.checked) {
         randomizeEquipment(array)
       }
@@ -104,12 +95,10 @@ function submitListener(event) {
         ' (randomized)',
         selectedFile.name.slice(insertIdx),
       ].join('')
-      download.className = 'pure-button pure-button-primary'
       download.download = randomizedFileName
       download.href = url
-      hideLoader()
-      target.innerHTML = 'Ready to download'
-      downloadReady = true
+      download.click()
+      URL.revokeObjectURL(url)
     } catch (e) {
       target.innerHTML = 'Error'
       throw e
@@ -137,7 +126,6 @@ const relics = form.elements['relics']
 const equipment = form.elements['equipment']
 
 const download = document.getElementById('download')
-download.addEventListener('click', clickListener, false)
 
 const loader = document.getElementById('loader')
 

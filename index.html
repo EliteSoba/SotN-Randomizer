@@ -1,30 +1,31 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Castlevania: Symphony of the Night Relic Randomizer</title>
+    <title>Castlevania: Symphony of the Night Randomizer</title>
     <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css">
     <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/grids-responsive-min.css">
     <link rel="stylesheet" href="index.css">
   </head>
   <body>
-    <h1>Relic Randomizer</h1>
-    <p>This is a relic randomizer for <i>Castlevania: Symphony of the Night</i>.</p>
+    <h1>SotN Randomizer</h1>
+    <p>This is a randomizer for <i>Castlevania: Symphony of the Night</i>.</p>
     <form id="form">
-      <fieldset>
-        <p id="target"></p>
-        <p>
-          <label for="seed">Seed (optional)</label> <input type="text" name="seed">
-        </p>
-        <p>
-          <input type="submit" name="randomize" class="pure-button" disabled="disabled" value="Randomize">
-          <a id="download" class="pure-button pure-button-primary pure-button-disabled">Download</a>
-        </p>
-      </fieldset>
+      <p id="target"></p>
+      <p>
+        <label for="seed">Seed (optional)</label> <input type="text" name="seed">
+      </p>
+      <div><input type="checkbox" name="equipment" checked="checked"> <label for="equipment">Randomize starting equipment</label></div>
+      <div><input type="checkbox" name="relics" checked="checked"> <label for="relics">Randomize relic locations</label></div>
+      <p>
+        <input type="submit" name="randomize" class="pure-button pure-button-primary" disabled="disabled" value="Randomize">
+        <a id="download" style="display:none"></a>
+      </p>
       <div id="loader"></div>
     </form>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.1/seedrandom.min.js"></script>
-    <script src="eccedccalc.js"></script>
-    <script src="relicrando.js"></script>
+    <script src="SotN-Equipment-Randomizer/index.js"></script>
+    <script src="SotN-Relic-Randomizer/index.js"></script>
+    <script src="ecc-edc-recalc-js/index.js"></script>
     <script src="index.js"></script>
   </body>
 </html>
