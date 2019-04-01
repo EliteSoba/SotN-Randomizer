@@ -1,9 +1,6 @@
-[submodule "SotN-Relic-Randomizer"]
-	path = SotN-Relic-Randomizer
-	url = https://github.com/3snowp7im/SotN-Relic-Randomizer
-[submodule "SotN-Equipment-Randomizer"]
-	path = SotN-Equipment-Randomizer
-	url = https://github.com/3snowp7im/SotN-Equipment-Randomizer
 [submodule "ecc-edc-recalc-js"]
 	path = ecc-edc-recalc-js
 	url = https://github.com/3snowp7im/ecc-edc-recalc-js
+[submodule "SotN-Equipment-Randomizer"]
+	path = SotN-Equipment-Randomizer
+	url = https://github.com/3snowp7im/SotN-Equipment-Randomizer
