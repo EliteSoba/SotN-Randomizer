@@ -17,9 +17,11 @@ function showLoader() {
 
 function resetState() {
   target.className = ''
-  target.innerHTML = 'Drop CD image here'
+  target.innerHTML = 'Drop .bin file here'
+  target.className = ''
   selectedFile = undefined
   randomize.disabled = true
+  seedValue.innerHTML = ''
   disableDownload()
   hideLoader()
 }
@@ -72,16 +74,20 @@ function submitListener(event) {
   if (seed.value.length) {
     Math.seedrandom(seed.value)
   } else {
-    Math.seedrandom((new Date().getTime()))
+    const randomSeed = (new Date()).getTime()
+    Math.seedrandom(randomSeed)
+    seedValue.innerHTML = 'Using random seed <i>' + randomSeed + '</i>'
   }
   const reader = new FileReader()
   reader.addEventListener('load', function() {
     try {
       const data = reader.result
       const array = new Uint8Array(data)
-      if (equipment.checked) {
-        randomizeEquipment(array)
+      const options = {
+        randomizeStartingEquipment: startingEquipment.checked,
+        randomizeEquipmentLocations: equipmentLocations.checked,
       }
+      randomizeEquipment(array, options)
       if (relics.checked) {
         randomizeRelics(array)
       }
@@ -100,6 +106,7 @@ function submitListener(event) {
       download.click()
       URL.revokeObjectURL(url)
     } catch (e) {
+      target.className = 'error'
       target.innerHTML = 'Error'
       throw e
     }
@@ -123,9 +130,12 @@ const seed = form.elements['seed']
 seed.addEventListener('change', changeHandler, false)
 
 const relics = form.elements['relics']
-const equipment = form.elements['equipment']
+const startingEquipment = form.elements['starting-equipment']
+const equipmentLocations = form.elements['equipment-locations']
 
 const download = document.getElementById('download')
+
+const seedValue = document.getElementById('seed-value')
 
 const loader = document.getElementById('loader')
 

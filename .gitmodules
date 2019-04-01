@@ -4,3 +4,6 @@
 [submodule "SotN-Equipment-Randomizer"]
 	path = SotN-Equipment-Randomizer
 	url = https://github.com/3snowp7im/SotN-Equipment-Randomizer
+[submodule "SotN-Relic-Randomizer"]
+	path = SotN-Relic-Randomizer
+	url = https://github.com/3snowp7im/SotN-Relic-Randomizer

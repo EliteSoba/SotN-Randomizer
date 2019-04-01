@@ -3,12 +3,18 @@ html, body {
 }
 
 body {
-    padding: 1em;
+    padding-left: 15%;
+    padding-right: 15%;
+}
+
+#changelog h3 {
+    display: inline;
+    font-size: medium;
 }
 
 #target {
     text-align: center;
-    padding: 3em 0;
+    padding: 4em 0;
     border: 10px #CCC dashed;
 }
 
@@ -47,4 +53,10 @@ body {
     80% { left: 50%;}
     95% {left: 120%;}
     to {left: 100%;}
+}
+
+#fork {
+    position: absolute;
+    top: 0;
+    left: 0;
 }
