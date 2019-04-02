@@ -21,7 +21,6 @@ function resetState() {
   target.className = ''
   selectedFile = undefined
   randomize.disabled = true
-  seedValue.innerHTML = ''
   disableDownload()
   hideLoader()
 }
@@ -71,13 +70,11 @@ function submitListener(event) {
   event.stopPropagation()
   disableDownload()
   showLoader()
+  let seedValue = (new Date()).getTime()
   if (seed.value.length) {
-    Math.seedrandom(seed.value)
-  } else {
-    const randomSeed = (new Date()).getTime()
-    Math.seedrandom(randomSeed)
-    seedValue.innerHTML = 'Using random seed <i>' + randomSeed + '</i>'
+    seedValue = seed.value
   }
+  Math.seedrandom(seedValue)
   const reader = new FileReader()
   reader.addEventListener('load', function() {
     try {
@@ -98,7 +95,7 @@ function submitListener(event) {
       const insertIdx = lastPeriodIdx === -1 ? selectedFile.name.length : lastPeriodIdx
       const randomizedFileName = [
         selectedFile.name.slice(0, insertIdx),
-        ' (randomized)',
+        ' (' + seedValue + ')',
         selectedFile.name.slice(insertIdx),
       ].join('')
       download.download = randomizedFileName
@@ -134,8 +131,6 @@ const startingEquipment = form.elements['starting-equipment']
 const equipmentLocations = form.elements['equipment-locations']
 
 const download = document.getElementById('download')
-
-const seedValue = document.getElementById('seed-value')
 
 const loader = document.getElementById('loader')
 
