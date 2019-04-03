@@ -1,26 +1,32 @@
+let isBrowser = true
+
+try {
+  isBrowser = !module
+} catch (e) {}
+
 let downloadReady
 let selectedFile
 
 function disableDownload() {
   downloadReady = false
-  delete download.download
-  delete download.href
+  delete elems.download.download
+  delete elems.download.href
 }
 
 function hideLoader() {
-  loader.style.visibility = 'hidden'
+  elems.loader.style.visibility = 'hidden'
 }
 
 function showLoader() {
-  loader.style.visibility = 'visible'
+  elems.loader.style.visibility = 'visible'
 }
 
 function resetState() {
-  target.className = ''
-  target.innerHTML = 'Drop .bin file here'
-  target.className = ''
+  elems.target.className = ''
+  elems.target.innerHTML = 'Drop .bin file here'
+  elems.target.className = ''
   selectedFile = undefined
-  randomize.disabled = true
+  elems.randomize.disabled = true
   disableDownload()
   hideLoader()
 }
@@ -30,14 +36,14 @@ function changeHandler() {
 }
 
 function dragLeaveListener(event) {
-  target.className = ''
+  elems.target.className = ''
 }
 
 function dragOverListener(event) {
   event.preventDefault()
   event.stopPropagation()
   event.dataTransfer.dropEffect = 'copy'
-  target.className = 'active'
+  elems.target.className = 'active'
 }
 
 function dropListener(event) {
@@ -59,10 +65,20 @@ function dropListener(event) {
     }
   }
   if (selectedFile) {
-    target.className = 'active'
-    target.innerHTML = 'Ready to randomize'
-    randomize.disabled = false
+    elems.target.className = 'active'
+    elems.target.innerHTML = 'Ready to randomize'
+    elems.randomize.disabled = false
   }
+}
+
+function randomizedFilename(filename, seedValue) {
+  const lastPeriodIdx = filename.lastIndexOf('.')
+  const insertIdx = lastPeriodIdx === -1 ? filename.length : lastPeriodIdx
+  return [
+    filename.slice(0, insertIdx),
+    ' (' + seedValue + ')',
+    filename.slice(insertIdx),
+  ].join('')
 }
 
 function submitListener(event) {
@@ -70,9 +86,9 @@ function submitListener(event) {
   event.stopPropagation()
   disableDownload()
   showLoader()
-  let seedValue = (new Date()).getTime()
-  if (seed.value.length) {
-    seedValue = seed.value
+  let seedValue = (new Date()).getTime().toString()
+  if (elems.seed.value.length) {
+    seedValue = elems.seed.value
   }
   Math.seedrandom(seedValue)
   const reader = new FileReader()
@@ -81,57 +97,105 @@ function submitListener(event) {
       const data = reader.result
       const array = new Uint8Array(data)
       const options = {
-        randomizeStartingEquipment: startingEquipment.checked,
-        randomizeEquipmentLocations: equipmentLocations.checked,
+        startingEquipment: elems.startingEquipment.checked,
+        equipmentLocations: elems.equipmentLocations.checked,
       }
       randomizeEquipment(array, options)
-      if (relics.checked) {
+      if (elems.relics.checked) {
         randomizeRelics(array)
       }
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], { type: 'application/octet-binary' }))
-      const lastPeriodIdx = selectedFile.name.lastIndexOf('.')
-      const insertIdx = lastPeriodIdx === -1 ? selectedFile.name.length : lastPeriodIdx
-      const randomizedFileName = [
-        selectedFile.name.slice(0, insertIdx),
-        ' (' + seedValue + ')',
-        selectedFile.name.slice(insertIdx),
-      ].join('')
-      download.download = randomizedFileName
-      download.href = url
-      download.click()
+      elems.download.download = randomizedFilename(selectedFile.name, seedValue)
+      elems.download.href = url
+      elems.download.click()
       URL.revokeObjectURL(url)
     } catch (e) {
-      target.className = 'error'
-      target.innerHTML = 'Error'
+      elems.target.className = 'error'
+      elems.target.innerHTML = 'Error'
       throw e
     }
   }, false)
   const file = reader.readAsArrayBuffer(selectedFile)
 }
 
-const body = document.getElementsByTagName('body')[0]
-body.addEventListener('dragover', dragOverListener, false)
-body.addEventListener('dragleave', dragLeaveListener, false)
-body.addEventListener('drop', dropListener, false)
+const elems = {}
 
-const target = document.getElementById('target')
+if (isBrowser) {
 
-const form = document.getElementById('form')
-form.addEventListener('submit', submitListener, false)
+  const body = document.getElementsByTagName('body')[0]
+  body.addEventListener('dragover', dragOverListener, false)
+  body.addEventListener('dragleave', dragLeaveListener, false)
+  body.addEventListener('drop', dropListener, false)
 
-const randomize = form.elements['randomize']
+  elems.target = document.getElementById('target')
 
-const seed = form.elements['seed']
-seed.addEventListener('change', changeHandler, false)
+  elems.form = document.getElementById('form')
+  form.addEventListener('submit', submitListener, false)
 
-const relics = form.elements['relics']
-const startingEquipment = form.elements['starting-equipment']
-const equipmentLocations = form.elements['equipment-locations']
+  elems.randomize = form.elements['randomize']
 
-const download = document.getElementById('download')
+  elems.seed = form.elements['seed']
+  elems.seed.addEventListener('change', changeHandler, false)
 
-const loader = document.getElementById('loader')
+  elems.relics = form.elements['relics']
+  elems.startingEquipment = form.elements['starting-equipment']
+  elems.equipmentLocations = form.elements['equipment-locations']
 
-resetState()
+  elems.download = document.getElementById('download')
+
+  elems.loader = document.getElementById('loader')
+
+  resetState()
+
+} else {
+
+  const argv = require('yargs')
+    .option('seed', {
+      alias: 's',
+      describe: 'seed',
+      default: (new Date()).getTime().toString(),
+    })
+    .option('starting-equipment', {
+      alias: 'e',
+      describe: 'randomize starting equipment',
+      default: true,
+    })
+    .option('equipment-locations', {
+      alias: 'l',
+      describe: 'randomize equipment locations',
+      default: true,
+    })
+    .option('relic-locations', {
+      alias: 'r',
+      describe: 'randomize relic locations',
+      default: true,
+    })
+    .demandCommand(1, 'must provide .bin filename to randomize')
+    .help()
+    .argv
+
+  const fs = require('fs')
+  const path = require('path')
+  const seedrandom = require('seedrandom')
+
+  const randomizeEquipment = require('./SotN-Equipment-Randomizer')
+  const randomizeRelics = require('./SotN-Relic-Randomizer')
+  const eccEdcCalc = require('./ecc-edc-recalc-js')
+
+  seedrandom(argv.seed.toString(), { global: true })
+
+  const data = fs.readFileSync(argv._[0])
+
+  randomizeEquipment(data, argv)
+
+  if (argv.relicLocations) {
+    randomizeRelics(data)
+  }
+
+  eccEdcCalc(data)
+
+  fs.writeFileSync(argv._[0], data)
+
+}
