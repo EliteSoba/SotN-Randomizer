@@ -44,77 +44,90 @@
       <div id="loader"></div>
     </form>
     <hr>
-    <div id="help">
-      <h2>Help</h2>
-      <p>
-        You need an image of your game disc in BIN/CUE format to use this tool.
-        If your disc image is split across two .bin files, drop only the first
-        .bin file (track 1) into the box below.
-      </p>
-      <p>
-        After downloading the randomized image, you will need to rename it to
-        match the track listing in your .cue file, or modify your cue file to
-        use the name of the randomized image.
-      </p>
-      <p>
-        If you find a seed that prevents you from getting the "better ending",
-        <a href="https://github.com/3snowp7im/SotN-Relic-Randomizer/issues/new">create an issue</a>
-        and include the problematic seed in the description so I can reproduce
-        the bad behavior.
-      </p>
-    </div>
+    <h2><a name="help">Help</a></h2>
+    <p>
+      You need an image of your game disc in BIN/CUE format to use this tool.
+      If your disc image is split across two .bin files, drop only the first
+      .bin file (track 1) into the box below.
+    </p>
+    <p>
+      After downloading the randomized image, you will need to rename it to
+      match the track listing in your .cue file, or modify your cue file to
+      use the name of the randomized image.
+    </p>
     <hr>
-    <div id="changelog">
-      <h2>Changelog</h2>
-      <ul>
-        <li>
-          <h3><time>April 4, 2019</time></h3>
-          <ul>
-            <li>Remove Maria cutscene in Alchemy Lab to avoid softlock.</li>
-            <li>Fix 2nd castle relic locations (thx EliteSoba).</li>
-          </ul>
-        </li>
-        <li>
-          <h3><time>April 3, 2019</time></h3>
-          <ul>
-            <li>Fix random seed not being reproducible.</li>
-            <li>Fix crash after Scylla fight.</li>
-            <li>Fix faerie scroll duping.</li>
-            <li>Fix same seed causes different randomizations.</li>
-          </ul>
-        </li>
-        <li>
-          <h3><time>April 2, 2019</time></h3>
-          <ul>
-            <li>Fix equipment randomization.</li>
-            <li>
-              Fix bug that allowed bat relic to be placed in 2nd castle without
-              ability to get spike breaker armor.
-            </li>
-            <li>Download file name contains seed value.</li>
-          </ul>
-        </li>
-        <li>
-          <h3><time>April 1, 2019</time></h3>
-          <ul>
-            <li>Fix shop relic glitch.</li>
-            <li>Fix relic duping in clock tower and outer wall.</li>
-          </ul>
-        </li>
-        <li>
-          <h3><time>March 31, 2019</time></h3>
-          Added equipment location randomization.
-        </li>
-        <li>
-          <h3><time>March 28, 2019</time></h3>
-          Added starting equipment randomization.
-        </li>
-        <li>
-          <h3><time>March 27, 2019</time></h3>
-          Ported skiffain's <a href="https://github.com/josephstevenspgh/SotN-Relic-Randomizer">relic randomizer</a> to javascript.
-        </li>
-      </ul>
-    </div>
+    <h2><a name="bugs">Bugs</a></h2>
+    <p>
+      If you find a bug, open an issue on the appropriate source repository.
+      In the description, include the seed used, a save file, and instructions
+      for reproducing the issue. If using an emulator, include the emulator
+      name and version.
+    </p>
+    <ul>
+      <li>
+        <a href="https://github.com/3snowp7im/SotN-Relic-Randomizer/issues/new">Relic randomizer issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/3snowp7im/SotN-Equipment-Randomizer/issues/new">Equipment randomizer issues</a>
+      </li>
+      <li>
+        <a href="https://github.com/3snowp7im/SotN-Randomizer/issues/new">Frontend issues</a>
+      </li>
+    </ul>
+    <p>
+      If you're not sure where the issue belongs to, just create it in the
+      frontend repo.
+    </p>
+    <hr>
+    <h2><a name="changelog">Changelog</a></h2>
+    <ul>
+      <li>
+        <h3><time>April 4, 2019</time></h3>
+        <ul>
+          <li>Remove Maria cutscene in Alchemy Lab to avoid softlock.</li>
+          <li>Fix 2nd castle relic locations (thx EliteSoba).</li>
+        </ul>
+      </li>
+      <li>
+        <h3><time>April 3, 2019</time></h3>
+        <ul>
+          <li>Fix random seed not being reproducible.</li>
+          <li>Fix crash after Scylla fight.</li>
+          <li>Fix faerie scroll duping.</li>
+          <li>Fix same seed causes different randomizations.</li>
+        </ul>
+      </li>
+      <li>
+        <h3><time>April 2, 2019</time></h3>
+        <ul>
+          <li>Fix equipment randomization.</li>
+          <li>
+            Fix bug that allowed bat relic to be placed in 2nd castle without
+            ability to get spike breaker armor.
+          </li>
+          <li>Download file name contains seed value.</li>
+        </ul>
+      </li>
+      <li>
+        <h3><time>April 1, 2019</time></h3>
+        <ul>
+          <li>Fix shop relic glitch.</li>
+          <li>Fix relic duping in clock tower and outer wall.</li>
+        </ul>
+      </li>
+      <li>
+        <h3><time>March 31, 2019</time></h3>
+        Added equipment location randomization.
+      </li>
+      <li>
+        <h3><time>March 28, 2019</time></h3>
+        Added starting equipment randomization.
+      </li>
+      <li>
+        <h3><time>March 27, 2019</time></h3>
+        Ported skiffain's <a href="https://github.com/josephstevenspgh/SotN-Relic-Randomizer">relic randomizer</a> to javascript.
+      </li>
+    </ul>
     <a id="fork" href="https://github.com/3snowp7im/SotN-Randomizer"><img width="149" height="149" src="https://github.blog/wp-content/uploads/2008/12/forkme_left_darkblue_121621.png?resize=149%2C149" class="attachment-full size-full" alt="Fork me on GitHub" data-recalc-dims="1"></a>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/seedrandom/3.0.1/seedrandom.min.js"></script>
     <script src="SotN-Equipment-Randomizer/index.js"></script>
