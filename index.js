@@ -158,13 +158,13 @@ if (isBrowser) {
       default: (new Date()).getTime().toString(),
     })
     .option('starting-equipment', {
-      alias: 's',
+      alias: 'e',
       describe: 'randomize starting equipment',
       type: 'boolean',
       default: true,
     })
     .option('equipment-locations', {
-      alias: 'e',
+      alias: 'l',
       describe: 'randomize equipment locations',
       type: 'boolean',
       default: true,
