@@ -158,18 +158,21 @@ if (isBrowser) {
       default: (new Date()).getTime().toString(),
     })
     .option('starting-equipment', {
-      alias: 'e',
+      alias: 's',
       describe: 'randomize starting equipment',
+      type: 'boolean',
       default: true,
     })
     .option('equipment-locations', {
-      alias: 'l',
+      alias: 'e',
       describe: 'randomize equipment locations',
+      type: 'boolean',
       default: true,
     })
     .option('relic-locations', {
       alias: 'r',
       describe: 'randomize relic locations',
+      type: 'boolean',
       default: true,
     })
     .demandCommand(1, 'must provide .bin filename to randomize')
