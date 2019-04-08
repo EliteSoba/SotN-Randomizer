@@ -97,13 +97,12 @@ function submitListener(event) {
       const data = reader.result
       const array = new Uint8Array(data)
       const options = {
+        relicLocations: elems.relicLocations.checked,
         startingEquipment: elems.startingEquipment.checked,
-        equipmentLocations: elems.equipmentLocations.checked,
+        itemLocations: elems.itemLocations.checked,
       }
+      randomizeRelics(array, options)
       randomizeItems(array, options)
-      if (elems.relics.checked) {
-        randomizeRelics(array)
-      }
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], { type: 'application/octet-binary' }))
@@ -133,9 +132,9 @@ if (isBrowser) {
   elems.randomize = form.elements['randomize']
   elems.seed = form.elements['seed']
   elems.seed.addEventListener('change', changeHandler, false)
-  elems.relics = form.elements['relics']
+  elems.relicLocations = form.elements['relic-locations']
   elems.startingEquipment = form.elements['starting-equipment']
-  elems.equipmentLocations = form.elements['item-locations']
+  elems.itemLocations = form.elements['item-locations']
   elems.download = document.getElementById('download')
   elems.loader = document.getElementById('loader')
   resetState()
