@@ -123,34 +123,23 @@ function submitListener(event) {
 const elems = {}
 
 if (isBrowser) {
-
   const body = document.getElementsByTagName('body')[0]
   body.addEventListener('dragover', dragOverListener, false)
   body.addEventListener('dragleave', dragLeaveListener, false)
   body.addEventListener('drop', dropListener, false)
-
   elems.target = document.getElementById('target')
-
   elems.form = document.getElementById('form')
   form.addEventListener('submit', submitListener, false)
-
   elems.randomize = form.elements['randomize']
-
   elems.seed = form.elements['seed']
   elems.seed.addEventListener('change', changeHandler, false)
-
   elems.relics = form.elements['relics']
   elems.startingEquipment = form.elements['starting-equipment']
-  elems.equipmentLocations = form.elements['equipment-locations']
-
+  elems.equipmentLocations = form.elements['item-locations']
   elems.download = document.getElementById('download')
-
   elems.loader = document.getElementById('loader')
-
   resetState()
-
 } else {
-
   const argv = require('yargs')
     .option('seed', {
       alias: 's',
@@ -163,9 +152,9 @@ if (isBrowser) {
       type: 'boolean',
       default: true,
     })
-    .option('equipment-locations', {
-      alias: 'l',
-      describe: 'randomize equipment locations',
+    .option('item-locations', {
+      alias: 'i',
+      describe: 'randomize item locations',
       type: 'boolean',
       default: true,
     })
@@ -175,30 +164,37 @@ if (isBrowser) {
       type: 'boolean',
       default: true,
     })
+    .option('check-vanilla', {
+      alias: 'c',
+      describe: 'require vanilla .bin file (does not modify image)',
+      type: 'boolean',
+      default: false,
+    })
+    .option('verbose', {
+      alias: 'v',
+      type: 'boolean',
+    })
     .demandCommand(1, 'must provide .bin filename to randomize')
     .help()
+    .version(false)
     .argv
-
   const fs = require('fs')
   const path = require('path')
-  const seedrandom = require('seedrandom')
-
-  const randomizeEquipment = require('./SotN-Equipment-Randomizer')
+  const util = require('util')
+  const randomizeItems = require('./SotN-Item-Randomizer')
   const randomizeRelics = require('./SotN-Relic-Randomizer')
   const eccEdcCalc = require('./ecc-edc-recalc-js')
-
-  seedrandom(argv.seed.toString(), { global: true })
-
-  const data = fs.readFileSync(argv._[0])
-
-  randomizeEquipment(data, argv)
-
-  if (argv.relicLocations) {
-    randomizeRelics(data)
+  const seed = argv.seed.toString()
+  if (argv.verbose) {
+    console.log('using seed ' + util.inspect(seed))
   }
-
-  eccEdcCalc(data)
-
-  fs.writeFileSync(argv._[0], data)
-
+  require('seedrandom')(seed, {global: true})
+  const data = fs.readFileSync(argv._[0])
+  let success = true
+  randomizeItems(data, argv)
+  randomizeRelics(data, argv)
+  if (!argv.checkVanilla) {
+    eccEdcCalc(data)
+    fs.writeFileSync(argv._[0], data)
+  }
 }
