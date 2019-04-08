@@ -100,7 +100,7 @@ function submitListener(event) {
         startingEquipment: elems.startingEquipment.checked,
         equipmentLocations: elems.equipmentLocations.checked,
       }
-      randomizeEquipment(array, options)
+      randomizeItems(array, options)
       if (elems.relics.checked) {
         randomizeRelics(array)
       }
