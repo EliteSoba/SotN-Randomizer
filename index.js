@@ -105,8 +105,13 @@ function submitListener(event) {
       randomizeRelics(array, options)
       // Recalc edc
       eccEdcCalc(array)
-      const url = URL.createObjectURL(new Blob([ data ], { type: 'application/octet-binary' }))
-      elems.download.download = randomizedFilename(selectedFile.name, seedValue)
+      const url = URL.createObjectURL(new Blob([ data ], {
+        type: 'application/octet-binary'
+      }))
+      elems.download.download = randomizedFilename(
+        selectedFile.name,
+        seedValue,
+      )
       elems.download.href = url
       elems.download.click()
       URL.revokeObjectURL(url)
