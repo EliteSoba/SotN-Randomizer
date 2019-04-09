@@ -101,8 +101,8 @@ function submitListener(event) {
         startingEquipment: elems.startingEquipment.checked,
         itemLocations: elems.itemLocations.checked,
       }
-      randomizeRelics(array, options)
       randomizeItems(array, options)
+      randomizeRelics(array, options)
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], { type: 'application/octet-binary' }))
