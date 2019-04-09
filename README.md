@@ -14,5 +14,5 @@ $ git clone https://github.com/3snowp7im/SotN-Randomizer
 $ cd SotN-Randomizer
 $ git submodule update --init
 $ npm install
-$ node . sotn.bin
+$ ./randomize sotn.bin
 ```
