@@ -31,7 +31,7 @@ function resetState() {
   hideLoader()
 }
 
-function changeHandler() {
+function seedChangeHandler() {
   disableDownload()
 }
 
@@ -101,8 +101,17 @@ function submitListener(event) {
         startingEquipment: elems.startingEquipment.checked,
         itemLocations: elems.itemLocations.checked,
       }
-      randomizeItems(array, options)
+      const info = {}
+      randomizeItems(array, options, info)
       randomizeRelics(array, options)
+      if (elems.showSpoilers.checked) {
+        let spoilers = ''
+        spoilers += 'Starting equipment:\n' +
+          info.startingEquipment.map(function(item) {
+            return ' ' + item
+          }).join('\n')
+        elems.spoilers.value = spoilers
+      }
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], {
@@ -136,10 +145,12 @@ if (isBrowser) {
   form.addEventListener('submit', submitListener, false)
   elems.randomize = form.elements['randomize']
   elems.seed = form.elements['seed']
-  elems.seed.addEventListener('change', changeHandler, false)
+  elems.seed.addEventListener('change', seedChangeHandler, false)
   elems.relicLocations = form.elements['relic-locations']
   elems.startingEquipment = form.elements['starting-equipment']
   elems.itemLocations = form.elements['item-locations']
+  elems.showSpoilers = form.elements['show-spoilers']
+  elems.spoilers = document.getElementById('spoilers')
   elems.download = document.getElementById('download')
   elems.loader = document.getElementById('loader')
   resetState()
@@ -147,36 +158,37 @@ if (isBrowser) {
   const argv = require('yargs')
     .option('seed', {
       alias: 's',
-      describe: 'seed',
+      describe: 'Seed',
       default: (new Date()).getTime().toString(),
     })
     .option('starting-equipment', {
       alias: 'e',
-      describe: 'randomize starting equipment',
+      describe: 'Randomize starting equipment',
       type: 'boolean',
       default: true,
     })
     .option('item-locations', {
       alias: 'i',
-      describe: 'randomize item locations',
+      describe: 'Randomize item locations',
       type: 'boolean',
       default: true,
     })
     .option('relic-locations', {
       alias: 'r',
-      describe: 'randomize relic locations',
+      describe: 'Randomize relic locations',
       type: 'boolean',
       default: true,
     })
     .option('check-vanilla', {
       alias: 'c',
-      describe: 'require vanilla .bin file (does not modify image)',
+      describe: 'Require vanilla .bin file (does not modify image)',
       type: 'boolean',
       default: false,
     })
     .option('verbose', {
       alias: 'v',
-      type: 'boolean',
+      describe: 'verbosity level',
+      type: 'count',
     })
     .demandCommand(1, 'must provide .bin filename to randomize')
     .help()
@@ -194,9 +206,12 @@ if (isBrowser) {
   }
   require('seedrandom')(seed, {global: true})
   const data = fs.readFileSync(argv._[0])
-  let success = true
-  randomizeItems(data, argv)
+  const info = {}
+  randomizeItems(data, argv, info)
   randomizeRelics(data, argv)
+  if (argv.verbose > 1) {
+    console.log(info)
+  }
   if (!argv.checkVanilla) {
     eccEdcCalc(data)
     fs.writeFileSync(argv._[0], data)

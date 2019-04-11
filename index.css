@@ -26,6 +26,10 @@ body {
     border-color: #FCC;
 }
 
+.spoilers {
+    float: right;
+}
+
 #loader {
     height: 4px;
     width: 100%;
