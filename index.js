@@ -35,6 +35,14 @@ function seedChangeHandler() {
   disableDownload()
 }
 
+function spoilersChangeHandler() {
+  if (!elems.showSpoilers.checked) {
+    elems.spoilers.style.visibility = 'hidden'
+  } else if (elems.spoilers.value.match(/[^\s]/)) {
+    elems.spoilers.style.visibility = 'visible'
+  }
+}
+
 function dragLeaveListener(event) {
   elems.target.className = ''
 }
@@ -104,13 +112,9 @@ function submitListener(event) {
       const info = {}
       randomizeItems(array, options, info)
       randomizeRelics(array, options)
+      elems.spoilers.value = formatInfo(info)
       if (elems.showSpoilers.checked) {
-        let spoilers = ''
-        spoilers += 'Starting equipment:\n' +
-          info.startingEquipment.map(function(item) {
-            return ' ' + item
-          }).join('\n')
-        elems.spoilers.value = spoilers
+        elems.spoilers.style.visibility = 'visible'
       }
       // Recalc edc
       eccEdcCalc(array)
@@ -133,6 +137,15 @@ function submitListener(event) {
   const file = reader.readAsArrayBuffer(selectedFile)
 }
 
+function formatInfo(info) {
+  const props = Object.getOwnPropertyNames(info)
+  return props.map(function(prop) {
+    return prop + ':\n' + info[prop].map(function(item) {
+      return '  ' + item
+    }).join('\n')
+  }).join('\n')
+}
+
 const elems = {}
 
 if (isBrowser) {
@@ -150,6 +163,7 @@ if (isBrowser) {
   elems.startingEquipment = form.elements['starting-equipment']
   elems.itemLocations = form.elements['item-locations']
   elems.showSpoilers = form.elements['show-spoilers']
+  elems.showSpoilers.addEventListener('change', spoilersChangeHandler, false)
   elems.spoilers = document.getElementById('spoilers')
   elems.download = document.getElementById('download')
   elems.loader = document.getElementById('loader')
@@ -202,7 +216,7 @@ if (isBrowser) {
   const eccEdcCalc = require('./ecc-edc-recalc-js')
   const seed = argv.seed.toString()
   if (argv.verbose) {
-    console.log('using seed ' + util.inspect(seed))
+    console.log('Using seed ' + util.inspect(seed))
   }
   require('seedrandom')(seed, {global: true})
   const data = fs.readFileSync(argv._[0])
@@ -210,7 +224,7 @@ if (isBrowser) {
   randomizeItems(data, argv, info)
   randomizeRelics(data, argv)
   if (argv.verbose > 1) {
-    console.log(info)
+    console.log(formatInfo(info))
   }
   if (!argv.checkVanilla) {
     eccEdcCalc(data)
