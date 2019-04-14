@@ -134,6 +134,7 @@ function submitListener(event) {
       throw e
     }
   }, false)
+  hideLoader()
   const file = reader.readAsArrayBuffer(selectedFile)
 }
 
