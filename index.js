@@ -4,8 +4,17 @@ try {
   isBrowser = !module
 } catch (e) {}
 
+let info
 let downloadReady
 let selectedFile
+
+const MAX_VERBOSITY = 5
+
+function newInfo() {
+  return Array(MAX_VERBOSITY + 1).fill(null).map(function() {
+    return {}
+  })
+}
 
 function disableDownload() {
   downloadReady = false
@@ -94,11 +103,13 @@ function submitListener(event) {
   event.stopPropagation()
   disableDownload()
   showLoader()
+  info = newInfo()
   let seedValue = (new Date()).getTime().toString()
   if (elems.seed.value.length) {
     seedValue = elems.seed.value
   }
   Math.seedrandom(seedValue)
+  info[1]['Seed'] = seedValue
   const reader = new FileReader()
   reader.addEventListener('load', function() {
     try {
@@ -109,10 +120,9 @@ function submitListener(event) {
         startingEquipment: elems.startingEquipment.checked,
         itemLocations: elems.itemLocations.checked,
       }
-      const info = {}
       randomizeItems(array, options, info)
       randomizeRelics(array, options)
-      elems.spoilers.value = formatInfo(info)
+      elems.spoilers.value = formatInfo(info, MAX_VERBOSITY)
       if (elems.showSpoilers.checked) {
         elems.spoilers.style.visibility = 'visible'
       }
@@ -137,13 +147,32 @@ function submitListener(event) {
   const file = reader.readAsArrayBuffer(selectedFile)
 }
 
-function formatInfo(info) {
-  const props = Object.getOwnPropertyNames(info)
-  return props.map(function(prop) {
-    return prop + ':\n' + info[prop].map(function(item) {
-      return '  ' + item
-    }).join('\n')
-  }).join('\n')
+function formatInfo(info, verbosity) {
+  const props = []
+  for (let level = 0; level <= verbosity; level++) {
+    Object.getOwnPropertyNames(info[level]).forEach(function(prop) {
+      if (props.indexOf(prop) === -1) {
+        props.push(prop)
+      }
+    })
+  }
+  const lines = []
+  props.forEach(function(prop) {
+    for (let level = 0; level <= verbosity; level++) {
+      if (info[level][prop]) {
+        let text = prop + ':'
+        if (Array.isArray(info[level][prop])) {
+          text += '\n' + info[level][prop].map(function(item) {
+            return '  ' + item
+          }).join('\n')
+        } else {
+          text += ' ' + info[level][prop]
+        }
+        lines.push(text)
+      }
+    }
+  })
+  return lines.join('\n')
 }
 
 const elems = {}
@@ -214,19 +243,17 @@ if (isBrowser) {
   const randomizeItems = require('./SotN-Item-Randomizer')
   const randomizeRelics = require('./SotN-Relic-Randomizer')
   const eccEdcCalc = require('./ecc-edc-recalc-js')
+  info = newInfo()
   if (!argv.checkVanilla) {
     const seed = argv.seed.toString()
-    if (argv.verbose) {
-      console.log('Using seed ' + util.inspect(seed))
-    }
+    info[1]['Seed'] = seed
     require('seedrandom')(seed, {global: true})
   }
   const data = fs.readFileSync(argv._[0])
-  const info = {}
   randomizeItems(data, argv, info)
   randomizeRelics(data, argv)
-  if (argv.verbose > 1) {
-    console.log(formatInfo(info))
+  if (argv.verbose >= 1) {
+    console.log(formatInfo(info, argv.verbose))
   }
   if (!argv.checkVanilla) {
     eccEdcCalc(data)
