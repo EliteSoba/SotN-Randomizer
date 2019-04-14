@@ -3,7 +3,7 @@
 	url = https://github.com/3snowp7im/ecc-edc-recalc-js
 [submodule "SotN-Relic-Randomizer"]
 	path = SotN-Relic-Randomizer
-	url = https://github.com/3snowp7im/SotN-Relic-Randomizer
+	url = https://github.com/EliteSoba/SotN-Relic-Randomizer
 [submodule "SotN-Item-Randomizer"]
 	path = SotN-Item-Randomizer
 	url = https://github.com/3snowp7im/SotN-Item-Randomizer
