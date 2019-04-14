@@ -47,9 +47,16 @@ function seedChangeHandler() {
 function spoilersChangeHandler() {
   if (!elems.showSpoilers.checked) {
     elems.spoilers.style.visibility = 'hidden'
-  } else if (elems.spoilers.value.match(/[^\s]/)) {
-    elems.spoilers.style.visibility = 'visible'
+    elems.showRelics.checked = false
+    elems.showRelics.disabled = true
+  } else {
+    showSpoilers()
+    elems.showRelics.disabled = false
   }
+}
+
+function showRelicsChangeHandler() {
+  showSpoilers()
 }
 
 function dragLeaveListener(event) {
@@ -121,11 +128,8 @@ function submitListener(event) {
         itemLocations: elems.itemLocations.checked,
       }
       randomizeItems(array, options, info)
-      randomizeRelics(array, options)
-      elems.spoilers.value = formatInfo(info, MAX_VERBOSITY)
-      if (elems.showSpoilers.checked) {
-        elems.spoilers.style.visibility = 'visible'
-      }
+      randomizeRelics(array, options, info)
+      showSpoilers()
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], {
@@ -148,6 +152,9 @@ function submitListener(event) {
 }
 
 function formatInfo(info, verbosity) {
+  if (!info) {
+    return ''
+  }
   const props = []
   for (let level = 0; level <= verbosity; level++) {
     Object.getOwnPropertyNames(info[level]).forEach(function(prop) {
@@ -175,6 +182,17 @@ function formatInfo(info, verbosity) {
   return lines.join('\n')
 }
 
+function showSpoilers() {
+  let verbosity = 2
+  if (elems.showRelics.checked) {
+    verbosity++
+  }
+  elems.spoilers.value = formatInfo(info, verbosity)
+  if (elems.showSpoilers.checked && elems.spoilers.value.match(/[^\s]/)) {
+    elems.spoilers.style.visibility = 'visible'
+  }
+}
+
 const elems = {}
 
 if (isBrowser) {
@@ -193,6 +211,8 @@ if (isBrowser) {
   elems.itemLocations = form.elements['item-locations']
   elems.showSpoilers = form.elements['show-spoilers']
   elems.showSpoilers.addEventListener('change', spoilersChangeHandler, false)
+  elems.showRelics = form.elements['show-relics']
+  elems.showRelics.addEventListener('change', showRelicsChangeHandler, false)
   elems.spoilers = document.getElementById('spoilers')
   elems.download = document.getElementById('download')
   elems.loader = document.getElementById('loader')
@@ -252,7 +272,7 @@ if (isBrowser) {
   const data = fs.readFileSync(argv._[0])
   let returnVal = true
   returnVal = randomizeItems(data, argv, info) && returnVal
-  returnVal = randomizeRelics(data, argv) && returnVal
+  returnVal = randomizeRelics(data, argv, info) && returnVal
   if (argv.verbose >= 1) {
     const text = formatInfo(info, argv.verbose)
     if (text.length) {
