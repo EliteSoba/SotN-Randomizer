@@ -250,16 +250,18 @@ if (isBrowser) {
     require('seedrandom')(seed, {global: true})
   }
   const data = fs.readFileSync(argv._[0])
-  randomizeItems(data, argv, info)
-  randomizeRelics(data, argv)
+  let returnVal = true
+  returnVal = randomizeItems(data, argv, info) && returnVal
+  returnVal = randomizeRelics(data, argv) && returnVal
   if (argv.verbose >= 1) {
     const text = formatInfo(info, argv.verbose)
     if (text.length) {
       console.log(text)
     }
   }
-  if (!argv.checkVanilla) {
-    eccEdcCalc(data)
-    fs.writeFileSync(argv._[0], data)
+  if (argv.checkVanilla) {
+    process.exit(returnVal ? 0 : 1)
   }
+  eccEdcCalc(data)
+  fs.writeFileSync(argv._[0], data)
 }
