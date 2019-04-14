@@ -253,7 +253,10 @@ if (isBrowser) {
   randomizeItems(data, argv, info)
   randomizeRelics(data, argv)
   if (argv.verbose >= 1) {
-    console.log(formatInfo(info, argv.verbose))
+    const text = formatInfo(info, argv.verbose)
+    if (text.length) {
+      console.log(text)
+    }
   }
   if (!argv.checkVanilla) {
     eccEdcCalc(data)
