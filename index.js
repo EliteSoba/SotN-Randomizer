@@ -218,29 +218,22 @@ if (isBrowser) {
   elems.loader = document.getElementById('loader')
   resetState()
 } else {
-  const argv = require('yargs')
+  const yargs = require('yargs')
+        .strict()
     .option('seed', {
       alias: 's',
       describe: 'Seed',
       default: (new Date()).getTime().toString(),
     })
-    .option('starting-equipment', {
-      alias: 'e',
-      describe: 'Randomize starting equipment',
-      type: 'boolean',
-      default: true,
-    })
-    .option('item-locations', {
-      alias: 'i',
-      describe: 'Randomize item locations',
-      type: 'boolean',
-      default: true,
-    })
-    .option('relic-locations', {
+    .option('randomize', {
       alias: 'r',
-      describe: 'Randomize relic locations',
-      type: 'boolean',
-      default: true,
+      describe: [
+        'Specify randomizations:',
+        '"e" for starting equipment',
+        '"i" for item locations',
+        '"r" for relic locations',
+      ].join('\n'),
+      default: 'eir',
     })
     .option('check-vanilla', {
       alias: 'c',
@@ -253,10 +246,27 @@ if (isBrowser) {
       describe: 'verbosity level',
       type: 'count',
     })
-    .demandCommand(1, 'must provide .bin filename to randomize')
+    .demandCommand(1, 'Must provide .bin filename to randomize')
     .help()
     .version(false)
-    .argv
+  const argv = yargs.argv
+  for (let i = 0; i < argv.randomize.length; i++) {
+    switch (argv.randomize[i]) {
+    case 'e':
+      argv.startingEquipment = true
+      break
+    case 'i':
+      argv.itemLocations = true
+      break
+    case 'r':
+      argv.relicLocations = true
+      break
+    default:
+      yargs.showHelp()
+      console.error('\nInvalid randomization: ' + argv.randomize[i])
+      process.exit(1)
+    }
+  }
   const fs = require('fs')
   const path = require('path')
   const util = require('util')
@@ -266,8 +276,8 @@ if (isBrowser) {
   info = newInfo()
   if (!argv.checkVanilla) {
     const seed = argv.seed.toString()
-    info[1]['Seed'] = seed
     require('seedrandom')(seed, {global: true})
+    info[1]['Seed'] = seed
   }
   const data = fs.readFileSync(argv._[0])
   let returnVal = true
