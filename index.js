@@ -214,11 +214,13 @@ if (isBrowser) {
   const randomizeItems = require('./SotN-Item-Randomizer')
   const randomizeRelics = require('./SotN-Relic-Randomizer')
   const eccEdcCalc = require('./ecc-edc-recalc-js')
-  const seed = argv.seed.toString()
-  if (argv.verbose) {
-    console.log('Using seed ' + util.inspect(seed))
+  if (!argv.checkVanilla) {
+    const seed = argv.seed.toString()
+    if (argv.verbose) {
+      console.log('Using seed ' + util.inspect(seed))
+    }
+    require('seedrandom')(seed, {global: true})
   }
-  require('seedrandom')(seed, {global: true})
   const data = fs.readFileSync(argv._[0])
   const info = {}
   randomizeItems(data, argv, info)
