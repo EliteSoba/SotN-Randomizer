@@ -95,12 +95,12 @@ function dropListener(event) {
   }
 }
 
-function randomizedFilename(filename, seedValue) {
+function randomizedFilename(filename, seed) {
   const lastPeriodIdx = filename.lastIndexOf('.')
   const insertIdx = lastPeriodIdx === -1 ? filename.length : lastPeriodIdx
   return [
     filename.slice(0, insertIdx),
-    ' (' + seedValue + ')',
+    ' (' + seed + ')',
     filename.slice(insertIdx),
   ].join('')
 }
@@ -111,12 +111,12 @@ function submitListener(event) {
   disableDownload()
   showLoader()
   info = newInfo()
-  let seedValue = (new Date()).getTime().toString()
+  let seed = (new Date()).getTime().toString()
   if (elems.seed.value.length) {
-    seedValue = elems.seed.value
+    seed = elems.seed.value
   }
-  Math.seedrandom(seedValue)
-  info[1]['Seed'] = seedValue
+  Math.seedrandom(seed)
+  info[1]['Seed'] = seed
   const reader = new FileReader()
   reader.addEventListener('load', function() {
     try {
@@ -130,6 +130,7 @@ function submitListener(event) {
       randomizeItems(array, options, info)
       randomizeRelics(array, options, info)
       showSpoilers()
+      setSeedText(data, seed)
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], {
@@ -137,7 +138,7 @@ function submitListener(event) {
       }))
       elems.download.download = randomizedFilename(
         selectedFile.name,
-        seedValue,
+        seed,
       )
       elems.download.href = url
       elems.download.click()
@@ -191,6 +192,29 @@ function showSpoilers() {
   if (elems.showSpoilers.checked && elems.spoilers.value.match(/[^\s]/)) {
     elems.spoilers.style.visibility = 'visible'
   }
+}
+
+function setSeedText(data, seed) {
+  const addresses = [{
+    start: 0x04389bf8,
+    length: 31,
+  }, {
+    start: 0x04389c6c,
+    length: 52,
+  }]
+  const maxSeedLength = 31
+  if (seed.length > maxSeedLength) {
+    seed = seed.slice(0, maxSeedLength)
+  }
+  addresses.forEach(function(address) {
+    for (let i = 0; i < address.length; i++) {
+      if (i < maxSeedLength && i < seed.length) {
+        data[address.start + i] = seed.charCodeAt(i)
+      } else {
+        data[address.start + i] = 0
+      }
+    }
+  })
 }
 
 const elems = {}
@@ -274,8 +298,8 @@ if (isBrowser) {
   const randomizeRelics = require('./SotN-Relic-Randomizer')
   const eccEdcCalc = require('./ecc-edc-recalc-js')
   info = newInfo()
+  const seed = argv.seed.toString()
   if (!argv.checkVanilla) {
-    const seed = argv.seed.toString()
     require('seedrandom')(seed, {global: true})
     info[1]['Seed'] = seed
   }
@@ -292,6 +316,7 @@ if (isBrowser) {
   if (argv.checkVanilla) {
     process.exit(returnVal ? 0 : 1)
   }
+  setSeedText(data, seed)
   eccEdcCalc(data)
   fs.writeFileSync(argv._[0], data)
 }
