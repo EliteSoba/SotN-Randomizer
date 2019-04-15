@@ -130,7 +130,7 @@ function submitListener(event) {
       randomizeItems(array, options, info)
       randomizeRelics(array, options, info)
       showSpoilers()
-      setSeedText(data, seed)
+      setSeedText(array, seed)
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], {
@@ -195,6 +195,38 @@ function showSpoilers() {
 }
 
 function setSeedText(data, seed) {
+  const map = {
+    ',': 0x4381,
+    '.': 0x4481,
+    ':': 0x4681,
+    ';': 0x4781,
+    '?': 0x4881,
+    '!': 0x4981,
+    '`': 0x4d81,
+    '"': 0x4e81,
+    '^': 0x4f81,
+    '_': 0x5181,
+    '~': 0x6081,
+    '\'': 0x6681,
+    '(': 0x6981,
+    ')': 0x6a81,
+    '[': 0x6d81,
+    ']': 0x6e81,
+    '{': 0x6f81,
+    '}': 0x7081,
+    '+': 0x7b81,
+    '-': 0x7c81,
+    '0': 0x4f82,
+    '1': 0x5082,
+    '2': 0x5182,
+    '3': 0x5282,
+    '4': 0x5382,
+    '5': 0x5482,
+    '6': 0x5582,
+    '7': 0x5682,
+    '8': 0x5782,
+    '9': 0x5882,
+  }
   const addresses = [{
     start: 0x04389bf8,
     length: 31,
@@ -203,15 +235,20 @@ function setSeedText(data, seed) {
     length: 52,
   }]
   const maxSeedLength = 31
-  if (seed.length > maxSeedLength) {
-    seed = seed.slice(0, maxSeedLength)
-  }
   addresses.forEach(function(address) {
-    for (let i = 0; i < address.length; i++) {
-      if (i < maxSeedLength && i < seed.length) {
-        data[address.start + i] = seed.charCodeAt(i)
+    let a = 0
+    let s = 0
+    while (a < address.length) {
+      if (s < maxSeedLength && s < seed.length) {
+        if (seed[s] in map && (s + 1) < maxSeedLength) {
+          const short = map[seed[s++]]
+          data[address.start + a++] = short & 0xff
+          data[address.start + a++] = short >>> 8
+        } else {
+          data[address.start + a++] = seed.charCodeAt(s++)
+        }
       } else {
-        data[address.start + i] = 0
+        data[address.start + a++] = 0
       }
     }
   })
