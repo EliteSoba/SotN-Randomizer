@@ -4,8 +4,17 @@ try {
   isBrowser = !module
 } catch (e) {}
 
+let info
 let downloadReady
 let selectedFile
+
+const MAX_VERBOSITY = 5
+
+function newInfo() {
+  return Array(MAX_VERBOSITY + 1).fill(null).map(function() {
+    return {}
+  })
+}
 
 function disableDownload() {
   downloadReady = false
@@ -38,9 +47,16 @@ function seedChangeHandler() {
 function spoilersChangeHandler() {
   if (!elems.showSpoilers.checked) {
     elems.spoilers.style.visibility = 'hidden'
-  } else if (elems.spoilers.value.match(/[^\s]/)) {
-    elems.spoilers.style.visibility = 'visible'
+    elems.showRelics.checked = false
+    elems.showRelics.disabled = true
+  } else {
+    showSpoilers()
+    elems.showRelics.disabled = false
   }
+}
+
+function showRelicsChangeHandler() {
+  showSpoilers()
 }
 
 function dragLeaveListener(event) {
@@ -94,11 +110,13 @@ function submitListener(event) {
   event.stopPropagation()
   disableDownload()
   showLoader()
+  info = newInfo()
   let seedValue = (new Date()).getTime().toString()
   if (elems.seed.value.length) {
     seedValue = elems.seed.value
   }
   Math.seedrandom(seedValue)
+  info[1]['Seed'] = seedValue
   const reader = new FileReader()
   reader.addEventListener('load', function() {
     try {
@@ -109,13 +127,9 @@ function submitListener(event) {
         startingEquipment: elems.startingEquipment.checked,
         itemLocations: elems.itemLocations.checked,
       }
-      const info = {}
       randomizeItems(array, options, info)
-      randomizeRelics(array, options)
-      elems.spoilers.value = formatInfo(info)
-      if (elems.showSpoilers.checked) {
-        elems.spoilers.style.visibility = 'visible'
-      }
+      randomizeRelics(array, options, info)
+      showSpoilers()
       // Recalc edc
       eccEdcCalc(array)
       const url = URL.createObjectURL(new Blob([ data ], {
@@ -138,13 +152,46 @@ function submitListener(event) {
   const file = reader.readAsArrayBuffer(selectedFile)
 }
 
-function formatInfo(info) {
-  const props = Object.getOwnPropertyNames(info)
-  return props.map(function(prop) {
-    return prop + ':\n' + info[prop].map(function(item) {
-      return '  ' + item
-    }).join('\n')
-  }).join('\n')
+function formatInfo(info, verbosity) {
+  if (!info) {
+    return ''
+  }
+  const props = []
+  for (let level = 0; level <= verbosity; level++) {
+    Object.getOwnPropertyNames(info[level]).forEach(function(prop) {
+      if (props.indexOf(prop) === -1) {
+        props.push(prop)
+      }
+    })
+  }
+  const lines = []
+  props.forEach(function(prop) {
+    for (let level = 0; level <= verbosity; level++) {
+      if (info[level][prop]) {
+        let text = prop + ':'
+        if (Array.isArray(info[level][prop])) {
+          text += '\n' + info[level][prop].map(function(item) {
+            return '  ' + item
+          }).join('\n')
+        } else {
+          text += ' ' + info[level][prop]
+        }
+        lines.push(text)
+      }
+    }
+  })
+  return lines.join('\n')
+}
+
+function showSpoilers() {
+  let verbosity = 2
+  if (elems.showRelics.checked) {
+    verbosity++
+  }
+  elems.spoilers.value = formatInfo(info, verbosity)
+  if (elems.showSpoilers.checked && elems.spoilers.value.match(/[^\s]/)) {
+    elems.spoilers.style.visibility = 'visible'
+  }
 }
 
 const elems = {}
@@ -165,34 +212,29 @@ if (isBrowser) {
   elems.itemLocations = form.elements['item-locations']
   elems.showSpoilers = form.elements['show-spoilers']
   elems.showSpoilers.addEventListener('change', spoilersChangeHandler, false)
+  elems.showRelics = form.elements['show-relics']
+  elems.showRelics.addEventListener('change', showRelicsChangeHandler, false)
   elems.spoilers = document.getElementById('spoilers')
   elems.download = document.getElementById('download')
   elems.loader = document.getElementById('loader')
   resetState()
 } else {
-  const argv = require('yargs')
+  const yargs = require('yargs')
+        .strict()
     .option('seed', {
       alias: 's',
       describe: 'Seed',
       default: (new Date()).getTime().toString(),
     })
-    .option('starting-equipment', {
-      alias: 'e',
-      describe: 'Randomize starting equipment',
-      type: 'boolean',
-      default: true,
-    })
-    .option('item-locations', {
-      alias: 'i',
-      describe: 'Randomize item locations',
-      type: 'boolean',
-      default: true,
-    })
-    .option('relic-locations', {
+    .option('randomize', {
       alias: 'r',
-      describe: 'Randomize relic locations',
-      type: 'boolean',
-      default: true,
+      describe: [
+        'Specify randomizations:',
+        '"e" for starting equipment',
+        '"i" for item locations',
+        '"r" for relic locations',
+      ].join('\n'),
+      default: 'eir',
     })
     .option('check-vanilla', {
       alias: 'c',
@@ -205,30 +247,52 @@ if (isBrowser) {
       describe: 'verbosity level',
       type: 'count',
     })
-    .demandCommand(1, 'must provide .bin filename to randomize')
+    .demandCommand(1, 'Must provide .bin filename to randomize')
     .help()
     .version(false)
-    .argv
+  const argv = yargs.argv
+  for (let i = 0; i < argv.randomize.length; i++) {
+    switch (argv.randomize[i]) {
+    case 'e':
+      argv.startingEquipment = true
+      break
+    case 'i':
+      argv.itemLocations = true
+      break
+    case 'r':
+      argv.relicLocations = true
+      break
+    default:
+      yargs.showHelp()
+      console.error('\nInvalid randomization: ' + argv.randomize[i])
+      process.exit(1)
+    }
+  }
   const fs = require('fs')
   const path = require('path')
   const util = require('util')
   const randomizeItems = require('./SotN-Item-Randomizer')
   const randomizeRelics = require('./SotN-Relic-Randomizer')
   const eccEdcCalc = require('./ecc-edc-recalc-js')
-  const seed = argv.seed.toString()
-  if (argv.verbose) {
-    console.log('Using seed ' + util.inspect(seed))
-  }
-  require('seedrandom')(seed, {global: true})
-  const data = fs.readFileSync(argv._[0])
-  const info = {}
-  randomizeItems(data, argv, info)
-  randomizeRelics(data, argv)
-  if (argv.verbose > 1) {
-    console.log(formatInfo(info))
-  }
+  info = newInfo()
   if (!argv.checkVanilla) {
-    eccEdcCalc(data)
-    fs.writeFileSync(argv._[0], data)
+    const seed = argv.seed.toString()
+    require('seedrandom')(seed, {global: true})
+    info[1]['Seed'] = seed
   }
+  const data = fs.readFileSync(argv._[0])
+  let returnVal = true
+  returnVal = randomizeItems(data, argv, info) && returnVal
+  returnVal = randomizeRelics(data, argv, info) && returnVal
+  if (argv.verbose >= 1) {
+    const text = formatInfo(info, argv.verbose)
+    if (text.length) {
+      console.log(text)
+    }
+  }
+  if (argv.checkVanilla) {
+    process.exit(returnVal ? 0 : 1)
+  }
+  eccEdcCalc(data)
+  fs.writeFileSync(argv._[0], data)
 }
