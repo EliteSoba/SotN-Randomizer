@@ -196,36 +196,36 @@ function showSpoilers() {
 
 function setSeedText(data, seed) {
   const map = {
-    ',': 0x4381,
-    '.': 0x4481,
-    ':': 0x4681,
-    ';': 0x4781,
-    '?': 0x4881,
-    '!': 0x4981,
-    '`': 0x4d81,
-    '"': 0x4e81,
-    '^': 0x4f81,
-    '_': 0x5181,
-    '~': 0x6081,
-    '\'': 0x6681,
-    '(': 0x6981,
-    ')': 0x6a81,
-    '[': 0x6d81,
-    ']': 0x6e81,
-    '{': 0x6f81,
-    '}': 0x7081,
-    '+': 0x7b81,
-    '-': 0x7c81,
-    '0': 0x4f82,
-    '1': 0x5082,
-    '2': 0x5182,
-    '3': 0x5282,
-    '4': 0x5382,
-    '5': 0x5482,
-    '6': 0x5582,
-    '7': 0x5682,
-    '8': 0x5782,
-    '9': 0x5882,
+    ',': 0x8143,
+    '.': 0x8144,
+    ':': 0x8146,
+    ';': 0x8147,
+    '?': 0x8148,
+    '!': 0x8149,
+    '`': 0x814d,
+    '"': 0x814e,
+    '^': 0x814f,
+    '_': 0x8151,
+    '~': 0x8160,
+    '\'': 0x8166,
+    '(': 0x8169,
+    ')': 0x816a,
+    '[': 0x816d,
+    ']': 0x816e,
+    '{': 0x816f,
+    '}': 0x8170,
+    '+': 0x817b,
+    '-': 0x817c,
+    '0': 0x824f,
+    '1': 0x8250,
+    '2': 0x8251,
+    '3': 0x8252,
+    '4': 0x8253,
+    '5': 0x8254,
+    '6': 0x8255,
+    '7': 0x8256,
+    '8': 0x8257,
+    '9': 0x8258,
   }
   const addresses = [{
     start: 0x04389bf8,
@@ -239,11 +239,15 @@ function setSeedText(data, seed) {
     let a = 0
     let s = 0
     while (a < address.length) {
-      if (s < maxSeedLength && s < seed.length) {
-        if (seed[s] in map && (s + 1) < maxSeedLength) {
-          const short = map[seed[s++]]
-          data[address.start + a++] = short & 0xff
-          data[address.start + a++] = short >>> 8
+      if (a < maxSeedLength && s < seed.length) {
+        if (seed[s] in map) {
+          if ((a + 1) < maxSeedLength) {
+            const short = map[seed[s++]]
+            data[address.start + a++] = short >>> 8
+            data[address.start + a++] = short & 0xff
+          } else {
+            s = seed.length
+          }
         } else {
           data[address.start + a++] = seed.charCodeAt(s++)
         }
