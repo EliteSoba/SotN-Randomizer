@@ -17,5 +17,6 @@
   "bugs": {
     "url": "https://github.com/3snowp7im/SotN-Randomizer/issues"
   },
-  "homepage": "https://3snowp7im.github.io/sotnrando/"
+  "homepage": "https://3snowp7im.github.io/sotnrando/",
+  "devDependencies": {}
 }
