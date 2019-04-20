@@ -5,11 +5,60 @@
     isNode = !!module
   } catch (e) {}
 
+  let version
+  let sjcl
+
   let info
+  let lastSeed
+
   let downloadReady
   let selectedFile
 
   const MAX_VERBOSITY = 5
+
+  function optionsFromString(randomize) {
+    const options = {}
+    for (let i = 0; i < (randomize || '').length; i++) {
+      switch (randomize[i]) {
+      case 'e':
+        options.startingEquipment = true
+        break
+      case 'i':
+        options.itemLocations = true
+        break
+      case 'r':
+        options.relicLocations = true
+        break
+      default:
+        throw new Error('Invalid randomization: ' + randomize[i])
+      }
+    }
+    return options
+  }
+
+  function optionsToString(options) {
+    let randomize = ''
+    if (options.startingEquipment) {
+      randomize += 'e'
+    }
+    if (options.itemLocations) {
+      randomize += 'i'
+    }
+    if (options.relicLocations) {
+      randomize += 'r'
+    }
+    return randomize
+  }
+
+  function saltSeed(options, seed) {
+    return sjcl.codec.hex.fromBits(sjcl.hash.sha256.hash(JSON.stringify({
+      version: version,
+      options: optionsToString(options),
+      seed: seed,
+    }))).match(/[0-9a-f]{2}/g).map(function(byte) {
+      return String.fromCharCode(byte)
+    }).join('')
+  }
 
   function newInfo() {
     return Array(MAX_VERBOSITY + 1).fill(null).map(function() {
@@ -41,8 +90,17 @@
     hideLoader()
   }
 
+  function resetCopy() {
+    if (elems.seed.value.length || (lastSeed && lastSeed.length)) {
+      elems.copy.disabled = false
+    } else {
+      elems.copy.disabled = true
+    }
+  }
+
   function seedChangeHandler() {
     disableDownload()
+    elems.copy.disabled = true
   }
 
   function spoilersChangeHandler() {
@@ -106,28 +164,34 @@
     ].join('')
   }
 
+  function getFormOptions() {
+    return {
+      relicLocations: elems.relicLocations.checked,
+      startingEquipment: elems.startingEquipment.checked,
+      itemLocations: elems.itemLocations.checked,
+    }
+  }
+
   function submitListener(event) {
     event.preventDefault()
     event.stopPropagation()
     disableDownload()
     showLoader()
     info = newInfo()
+    const options = getFormOptions()
     let seed = (new Date()).getTime().toString()
     if (elems.seed.value.length) {
       seed = elems.seed.value
     }
-    Math.seedrandom(seed)
+    lastSeed = seed
+    resetCopy()
+    Math.seedrandom(saltSeed(options, seed))
     info[1]['Seed'] = seed
     const reader = new FileReader()
     reader.addEventListener('load', function() {
       try {
         const data = reader.result
         const array = new Uint8Array(data)
-        const options = {
-          relicLocations: elems.relicLocations.checked,
-          startingEquipment: elems.startingEquipment.checked,
-          itemLocations: elems.itemLocations.checked,
-        }
         window.sotnRandoItems.randomizeItems(array, options, info)
         window.sotnRandoRelics.randomizeRelics(array, options, info)
         showSpoilers()
@@ -151,6 +215,31 @@
       }
     }, false)
     const file = reader.readAsArrayBuffer(selectedFile)
+  }
+
+  function copyHandler(event) {
+    event.preventDefault()
+    event.stopPropagation()
+    elems.seed.value = elems.seed.value || lastSeed || ''
+    const data = new DataTransfer()
+    const url = new URL(window.location.href)
+    const keys = []
+    for (let key of url.searchParams.keys()) {
+      keys.push(key)
+    }
+    keys.forEach(function(key) {
+      url.searchParams.delete(key)
+    })
+    url.searchParams.set('r', optionsToString(getFormOptions()))
+    url.searchParams.set('s', elems.seed.value)
+    data.items.add('text/plain', url.toString())
+    if (url.protocol === 'https:') {
+      navigator.clipboard.write(data)
+    }
+    elems.notification.className = 'success'
+    setTimeout(function() {
+      elems.notification.className = 'success hide'
+    }, 250)
   }
 
   function formatInfo(info, verbosity) {
@@ -262,6 +351,14 @@
   const elems = {}
 
   if (isNode) {
+    const fs = require('fs')
+    const path = require('path')
+    const util = require('util')
+    const randomizeItems = require('./SotN-Item-Randomizer')
+    const randomizeRelics = require('./SotN-Relic-Randomizer')
+    const eccEdcCalc = require('./ecc-edc-recalc-js')
+    sjcl = require('sjcl')
+    version = require('./package').version
     const yargs = require('yargs')
       .strict()
       .option('seed', {
@@ -294,39 +391,25 @@
       .help()
       .version(false)
     const argv = yargs.argv
-    for (let i = 0; i < argv.randomize.length; i++) {
-      switch (argv.randomize[i]) {
-      case 'e':
-        argv.startingEquipment = true
-        break
-      case 'i':
-        argv.itemLocations = true
-        break
-      case 'r':
-        argv.relicLocations = true
-        break
-      default:
-        yargs.showHelp()
-        console.error('\nInvalid randomization: ' + argv.randomize[i])
-        process.exit(1)
-      }
+    let options
+    try {
+      options = optionsFromString(argv.randomize)
+    } catch (e) {
+      yargs.showHelp()
+      console.error('\n' + e.message)
+      process.exit(1)
     }
-    const fs = require('fs')
-    const path = require('path')
-    const util = require('util')
-    const randomizeItems = require('./SotN-Item-Randomizer')
-    const randomizeRelics = require('./SotN-Relic-Randomizer')
-    const eccEdcCalc = require('./ecc-edc-recalc-js')
+    options.verbose = argv.verbose
     info = newInfo()
     const seed = argv.seed.toString()
     if (!argv.checkVanilla) {
-      require('seedrandom')(seed, {global: true})
+      require('seedrandom')(saltSeed(options, seed), {global: true})
       info[1]['Seed'] = seed
     }
     const data = fs.readFileSync(argv._[0])
     let returnVal = true
-    returnVal = randomizeItems(data, argv, info) && returnVal
-    returnVal = randomizeRelics(data, argv, info) && returnVal
+    returnVal = randomizeItems(data, options, info) && returnVal
+    returnVal = randomizeRelics(data, options, info) && returnVal
     if (argv.verbose >= 1) {
       const text = formatInfo(info, argv.verbose)
       if (text.length) {
@@ -361,5 +444,37 @@
     elems.download = document.getElementById('download')
     elems.loader = document.getElementById('loader')
     resetState()
+    elems.copy = document.getElementById('copy')
+    elems.copy.addEventListener('click', copyHandler, false)
+    elems.notification = document.getElementById('notification')
+    sjcl = window.sjcl
+    const url = new URL(window.location.href)
+    if (url.protocol !== 'file:') {
+      fetch(new Request('package.json')).then(function(response) {
+        if (response.ok) {
+          response.json().then(function(json) {
+            version = json.version
+          })
+        }
+      }).catch(function(){})
+    }
+    const randomize = url.searchParams.get('r')
+    const seed = url.searchParams.get('s')
+    if (typeof(randomize) === 'string') {
+      const options = optionsFromString(randomize)
+      if (!options.startingEquipment) {
+        elems.startingEquipment.checked = false
+      }
+      if (!options.itemLocations) {
+        elems.itemLocations.checked = false
+      }
+      if (!options.relicLocations) {
+        elems.relicLocations.checked = false
+      }
+    }
+    if (typeof(seed) === 'string') {
+      elems.seed.value = seed
+      seedChangeHandler()
+    }
   }
 })()
