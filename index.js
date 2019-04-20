@@ -5,6 +5,8 @@
     isNode = !!module
   } catch (e) {}
 
+  const defaultOptions = 'eir'
+
   let version
   let sjcl
 
@@ -221,7 +223,6 @@
     event.preventDefault()
     event.stopPropagation()
     elems.seed.value = elems.seed.value || lastSeed || ''
-    const data = new DataTransfer()
     const url = new URL(window.location.href)
     const keys = []
     for (let key of url.searchParams.keys()) {
@@ -230,12 +231,15 @@
     keys.forEach(function(key) {
       url.searchParams.delete(key)
     })
-    url.searchParams.set('r', optionsToString(getFormOptions()))
-    url.searchParams.set('s', elems.seed.value)
-    data.items.add('text/plain', url.toString())
-    if (url.protocol === 'https:') {
-      navigator.clipboard.write(data)
+    const options = optionsToString(getFormOptions())
+    if (options !== defaultOptions) {
+      url.searchParams.set('r', options)
     }
+    url.searchParams.set('s', elems.seed.value)
+    elems.seedUrl.className = ''
+    elems.seedUrl.value = url.toString()
+    elems.seedUrl.select()
+    document.execCommand('copy')
     elems.notification.className = 'success'
     setTimeout(function() {
       elems.notification.className = 'success hide'
@@ -374,7 +378,7 @@
           '"i" for item locations',
           '"r" for relic locations',
         ].join('\n'),
-        default: 'eir',
+        default: defaultOptions,
       })
       .option('check-vanilla', {
         alias: 'c',
@@ -447,6 +451,7 @@
     elems.copy = document.getElementById('copy')
     elems.copy.addEventListener('click', copyHandler, false)
     elems.notification = document.getElementById('notification')
+    elems.seedUrl = document.getElementById('seed-url')
     sjcl = window.sjcl
     const url = new URL(window.location.href)
     if (url.protocol !== 'file:') {
@@ -460,17 +465,15 @@
     }
     const randomize = url.searchParams.get('r')
     const seed = url.searchParams.get('s')
-    if (typeof(randomize) === 'string') {
-      const options = optionsFromString(randomize)
-      if (!options.startingEquipment) {
-        elems.startingEquipment.checked = false
-      }
-      if (!options.itemLocations) {
-        elems.itemLocations.checked = false
-      }
-      if (!options.relicLocations) {
-        elems.relicLocations.checked = false
-      }
+    const options = optionsFromString(randomize || defaultOptions)
+    if (!options.startingEquipment) {
+      elems.startingEquipment.checked = false
+    }
+    if (!options.itemLocations) {
+      elems.itemLocations.checked = false
+    }
+    if (!options.relicLocations) {
+      elems.relicLocations.checked = false
     }
     if (typeof(seed) === 'string') {
       elems.seed.value = seed

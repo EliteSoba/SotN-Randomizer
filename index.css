@@ -55,6 +55,10 @@ body {
     opacity: 0;
 }
 
+#seed-url.hidden {
+    display: none;
+}
+
 #loader {
     height: 4px;
     width: 100%;
