@@ -34,6 +34,31 @@ body {
     visibility: hidden;
 }
 
+#notification {
+    padding: 1em;
+    margin: 10px;
+    background: #cfc;
+    border-radius: .5em;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    display: none;
+}
+
+#notification.success {
+    display: block;
+    opacity: 1;
+    transition: opacity 2s ease-in-out;
+}
+
+#notification.success.hide {
+    opacity: 0;
+}
+
+#seed-url.hidden {
+    display: none;
+}
+
 #loader {
     height: 4px;
     width: 100%;
